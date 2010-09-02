@@ -1,0 +1,242 @@
+﻿<html>
+<head>
+<script type='text/javascript' src='../scripts/jQuery.js'></script>
+<script type='text/javascript'>
+	var scenarios = []
+	function scenario(s) { scenarios.push(s) }
+
+	var defaults = {
+		burn: 2,
+		repeat: 10,
+		url: "Default.aspx",
+		parameters: {}
+	}
+
+	Number.prototype.round = function round(places) {
+		var pow10 = Math.pow(10, places)
+		return Math.round(this * pow10) / pow10
+	}
+
+</script>
+<script type='text/javascript' src='parameters.js'></script>
+<script type='text/javascript' src='scenarios.js'></script>
+<script type='text/javascript'>
+
+	$(function () {
+		var statusDiv = $('#status')
+		function status(message) {
+			statusDiv.text(message)
+		}
+
+		var logEntry = $('#log .entry')
+		var logEntries = logEntry.parent()
+		logEntry.remove()
+		function log(values) {
+			var entry = logEntry.clone()
+			for (var cssClass in values)
+				entry.find('.' + cssClass).text(values[cssClass])
+			logEntries.append(entry)
+		}
+
+		var frames = $('#frames')
+		function clearFrames() {
+			var templates = frames.find('.template')
+			templates.fadeOut(function () { templates.remove() })
+			//frames.empty() 
+		}
+
+		var template = $('.template').hide()
+
+		function loadFrame(title, url, onFinish, onload) {
+			var instance = template.clone(false).show()
+			instance.find('.title').text(title)
+			frames.append(instance)
+
+			function frameLoaded() {
+				if (onload) {
+					var f = onload
+					onload = null
+					startTime = new Date().valueOf()
+					f(this.contentWindow.$, this.contentWindow.V1)
+				}
+
+				else {
+					var endTime = new Date().valueOf()
+					var elapsed = (endTime - startTime) / 1000.0
+					var locationHref = this.contentWindow.location.href
+
+					instance.addClass('loaded')
+						.fadeOut(5000, function () { instance.remove() })
+						.find('.timing').text(elapsed + ' seconds')
+
+					onFinish(elapsed, locationHref)
+				}
+			}
+
+			var startTime = new Date().valueOf()
+			instance.find('iframe').attr('src', url).load(frameLoaded)
+		}
+
+		function makeUrl(url, parameters) {
+			var needQ = url.indexOf('?') < 0
+			var a = [url]
+			for (var name in parameters) {
+				a.push(needQ ? '?' : '&')
+				needQ = false
+				a.push(name)
+				a.push('=')
+				a.push(parameters[name])
+			}
+			return a.join('')
+		}
+
+		function Stats() {
+			this._count = 0
+			this._sum = 0.0
+			this._sum_of_squares = 0.0
+			this._min = Number.POSITIVE_INFINITY
+
+			this.accumulate = function accumulate(value) {
+				++this._count
+				this._sum += value
+				this._sum_of_squares += value * value
+				this._min = Math.min(this._min, value)
+			}
+
+			this.count = function count() { return this._count }
+
+			this.sum = function sum() { if (this._count) return this._sum.round(2) }
+
+			this.min = function min() { if (this._count) return this._min.round(2) }
+
+			this._average = function() { return this._sum / this._count }
+
+			this.average = function average() { if (this._count) return (this._average()).round(2) }
+
+			this.stddev = function stddev() {
+				if (this._count) {
+					var mean_of_squares = this._sum_of_squares / this._count
+					var mean = this._average()
+					var square_of_means = mean * mean
+					var variance = mean_of_squares - square_of_means
+					return Math.sqrt(variance).round(2)
+				}
+			}
+		}
+
+		function runScenario(index) {
+			if (index >= scenarios.length) return finished()
+
+			var scenario = scenarios[index]
+
+			var url = makeUrl('../' + (scenario.url || defaults.url), scenario.parameters || defaults.parameters)
+			var burn = typeof scenario.burn === 'number' ? scenario.burn : defaults.burn
+			var repeat = typeof scenario.repeat === 'number' ? scenario.repeat : defaults.repeat
+			var actualUrl
+
+			var stats = new Stats()
+
+			function onProgress() {
+			}
+
+			function onComplete() {
+				//clearFrames()
+				status('Done')
+				log({ name: scenario.name, average: stats.average(), best: stats.min(), stddev: stats.stddev(), href: actualUrl })
+				runScenario(index + 1)
+			}
+
+			function start() {
+				status(scenario.name + ' (' + (burn + repeat).toString() + ')')
+				var uniqueUrl = makeUrl(url, { bust: (new Date()).valueOf() })
+				if (burn) {
+					--burn
+					loadFrame(scenario.name + ' (burn)', uniqueUrl, endBurn)
+				}
+				else if (repeat) {
+					--repeat
+					loadFrame(scenario.name, uniqueUrl, end, scenario.onload)
+				}
+				else {
+					onComplete()
+				}
+			}
+
+			function endBurn(time, locationHref) {
+				actualUrl = locationHref
+				start()
+			}
+
+			function end(time, locationHref) {
+				stats.accumulate(time)
+				actualUrl = locationHref
+				onProgress()
+				start()
+			}
+
+			start()
+		}
+
+		function finished() {
+			template.remove()
+			//frames.remove()
+			statusDiv.fadeOut(function () { statusDiv.remove() })
+		}
+
+		runScenario(0)
+	})
+
+</script>
+<style>
+.input, BUTTON { margin: 10px }
+.input { display: inline-block; }
+.input .label { display: block; }
+#url { width: 800px; }
+.template { width: 300px; border: 2px solid red; display: inline-block; }
+.template.loaded { border: 2px solid green; }
+.timing, .title { background-color: #F88; height: 20px; text-align: center; }
+.loaded .timing, .loaded .title { background-color: #8F8; }
+IFRAME { width: 300px; height: 200px; border: 0; }
+.output { display: inline-block; border: 1px solid grey; padding: 5px; }
+.output .value { background-color: #F88; } 
+.output.loaded .value { background-color: #8F8; }
+#status { padding: 5px; margin: 5px 0; background-color: Silver; }
+#log { border-collapse: collapse; margin: 5px 0; }
+#log .average, #log .best, #log .stddev { text-align: right; width: 10em; }
+</style>
+
+</head>
+<body>
+	
+<div id='status'>Not Started</div>
+
+<div id='frames'>
+</div>
+
+<div class='template'>
+	<div class='title'></div>
+	<div class='iframe'><iframe></iframe></div>
+	<div class='timing'>Loading...</div>
+</div>
+
+<table id='log' border='1'>
+	<thead>
+		<tr>
+			<th>Scenario</th>
+			<th>Average</th>
+			<th>Best</th>
+			<th>σ</th>
+			<th>href</th>
+		</tr>
+	</thead>
+	<tr class='entry'>
+		<td class='name'>&nbsp;</td>
+		<td class='average'>&nbsp;</td>
+		<td class='best'>&nbsp;</td>
+		<td class='stddev'>&nbsp;</td>
+		<td class='href'>&nbsp;</td>
+	</tr>
+</table>
+
+</body>
+</html>
