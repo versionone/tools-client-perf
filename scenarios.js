@@ -1,3 +1,7 @@
+if (typeof ticket==='undefined' || !ticket.replace(/[ \t\?]/g, '')) {
+	alert("Need ticket to be specified in parameters.js")
+	throw "Need ticket to be specified in parameters.js"
+}
 
 scenario({
 	name: "Initialize and Login",
