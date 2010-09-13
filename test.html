@@ -19,7 +19,6 @@
 
 	String.prototype.qparm = function qparm(name) {
 		var match = new RegExp("\\?.*\\b" + name + "=([^&]+)").exec(this)
-		if (match) alert(name +'='+match[1])
 		if (match) return match[1]
 	}
 
