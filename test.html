@@ -17,6 +17,17 @@
 		return Math.round(this * pow10) / pow10
 	}
 
+	String.prototype.qparm = function qparm(name) {
+		var match = new RegExp(name + "=(\\d+)").exec(this)
+		if (match) return match[1]
+	}
+
+	$.fn.fadeAway = function fadeAway(elapse) {
+		var t = this
+		t.fadeOut(elapse, function () { t.remove() })
+		return this
+	}
+
 </script>
 <script type='text/javascript' src='parameters.js'></script>
 <script type='text/javascript' src='scenarios.js'></script>
@@ -31,27 +42,18 @@
 		var logEntry = $('#log .entry')
 		var logEntries = logEntry.parent()
 		logEntry.remove()
-		function log(values) {
-			var entry = logEntry.clone()
+		function log(values, cssClass) {
+			var entry = logEntry.clone().addClass(cssClass)
 			for (var cssClass in values)
 				entry.find('.' + cssClass).text(values[cssClass])
 			logEntries.append(entry)
 		}
 
 		var frames = $('#frames')
-		function clearFrames() {
-			var templates = frames.find('.template')
-			templates.fadeOut(function () { templates.remove() })
-			//frames.empty() 
-		}
 
 		var template = $('.template').hide()
 
 		function loadFrame(title, url, onFinish, onload) {
-			var instance = template.clone(false).show()
-			instance.find('.title').text(title)
-			frames.append(instance)
-
 			function frameLoaded() {
 				if (onload) {
 					var f = onload
@@ -66,15 +68,20 @@
 					var locationHref = this.contentWindow.location.href
 
 					instance.addClass('loaded')
-						.fadeOut(5000, function () { instance.remove() })
+						.fadeAway(5000)
 						.find('.timing').text(elapsed + ' seconds')
+					instance.find('iframe').unbind('load')
 
 					onFinish(elapsed, locationHref)
 				}
 			}
 
-			var startTime = new Date().valueOf()
+			var instance = template.clone(false).show()
+			instance.find('.title').text(title)
 			instance.find('iframe').attr('src', url).load(frameLoaded)
+			frames.append(instance)
+
+			var startTime = new Date().valueOf()
 		}
 
 		function makeUrl(url, parameters) {
@@ -132,55 +139,49 @@
 			var url = makeUrl('../' + (scenario.url || defaults.url), scenario.parameters || defaults.parameters)
 			var burn = typeof scenario.burn === 'number' ? scenario.burn : defaults.burn
 			var repeat = typeof scenario.repeat === 'number' ? scenario.repeat : defaults.repeat
-			var actualUrl
 
 			var stats = new Stats()
+			var note = ''
+			var cssClass = 'complete'
 
-			function onProgress() {
+			function queueMe() {
+				setTimeout(doMe, 0)
 			}
 
-			function onComplete() {
-				//clearFrames()
-				status('Done')
-				log({ name: scenario.name, average: stats.average(), best: stats.min(), stddev: stats.stddev(), href: actualUrl })
-				runScenario(index + 1)
-			}
-
-			function start() {
+			function doMe() {
 				status(scenario.name + ' (' + (burn + repeat).toString() + ')')
 				var uniqueUrl = makeUrl(url, { bust: (new Date()).valueOf() })
 				if (burn) {
 					--burn
-					loadFrame(scenario.name + ' (burn)', uniqueUrl, endBurn)
+					loadFrame(scenario.name + ' (burn)', uniqueUrl, queueMe)
 				}
 				else if (repeat) {
 					--repeat
-					loadFrame(scenario.name, uniqueUrl, end, scenario.onload)
+					loadFrame(scenario.name, uniqueUrl, function finish(time, actualUrl) {
+						if (uniqueUrl.qparm('bust') != actualUrl.qparm('bust'))
+						{
+							note += 'Wanted ' + uniqueUrl + ' but got ' + actualUrl + '.'
+							cssClass = 'warning'
+						}
+						stats.accumulate(time)
+						//log({ name: uniqueUrl, href: actualUrl }, 'repeat' + (uniqueUrl.qparm('bust') == actualUrl.qparm('bust') ? '' : ' warning'))
+						queueMe()
+					}, scenario.onload)
 				}
 				else {
-					onComplete()
+					status('Done')
+					log({ name: scenario.name, average: stats.average(), best: stats.min(), stddev: stats.stddev(), note: note }, cssClass)
+					runScenario(index + 1)
 				}
 			}
 
-			function endBurn(time, locationHref) {
-				actualUrl = locationHref
-				start()
-			}
-
-			function end(time, locationHref) {
-				stats.accumulate(time)
-				actualUrl = locationHref
-				onProgress()
-				start()
-			}
-
-			start()
+			queueMe()
 		}
 
 		function finished() {
 			template.remove()
 			//frames.remove()
-			statusDiv.fadeOut(function () { statusDiv.remove() })
+			statusDiv.fadeAway()
 		}
 
 		runScenario(0)
@@ -203,6 +204,7 @@ IFRAME { width: 300px; height: 200px; border: 0; }
 #status { padding: 5px; margin: 5px 0; background-color: Silver; }
 #log { border-collapse: collapse; margin: 5px 0; }
 #log .average, #log .best, #log .stddev { text-align: right; width: 10em; }
+#log .warning { background-color: #F88; }
 </style>
 
 </head>
@@ -226,7 +228,7 @@ IFRAME { width: 300px; height: 200px; border: 0; }
 			<th>Average</th>
 			<th>Best</th>
 			<th>σ</th>
-			<th>href</th>
+			<th>notes</th>
 		</tr>
 	</thead>
 	<tr class='entry'>
@@ -234,7 +236,7 @@ IFRAME { width: 300px; height: 200px; border: 0; }
 		<td class='average'>&nbsp;</td>
 		<td class='best'>&nbsp;</td>
 		<td class='stddev'>&nbsp;</td>
-		<td class='href'>&nbsp;</td>
+		<td class='note'>&nbsp;</td>
 	</tr>
 </table>
 
