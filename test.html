@@ -18,7 +18,8 @@
 	}
 
 	String.prototype.qparm = function qparm(name) {
-		var match = new RegExp(name + "=(\\d+)").exec(this)
+		var match = new RegExp("\\?.*\\b" + name + "=([^&]+)").exec(this)
+		if (match) alert(name +'='+match[1])
 		if (match) return match[1]
 	}
 
@@ -164,7 +165,6 @@
 							cssClass = 'warning'
 						}
 						stats.accumulate(time)
-						//log({ name: uniqueUrl, href: actualUrl }, 'repeat' + (uniqueUrl.qparm('bust') == actualUrl.qparm('bust') ? '' : ' warning'))
 						queueMe()
 					}, scenario.onload)
 				}
