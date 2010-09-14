@@ -139,6 +139,7 @@
 			var url = makeUrl('../' + (scenario.url || defaults.url), scenario.parameters || defaults.parameters)
 			var burn = typeof scenario.burn === 'number' ? scenario.burn : defaults.burn
 			var repeat = typeof scenario.repeat === 'number' ? scenario.repeat : defaults.repeat
+			var doLog = repeat > 0
 
 			var stats = new Stats()
 			var note = ''
@@ -169,7 +170,8 @@
 				}
 				else {
 					status('Done')
-					log({ name: scenario.name, average: stats.average(), best: stats.min(), stddev: stats.stddev(), note: note }, cssClass)
+					if (doLog)
+						log({ name: scenario.name, average: stats.average(), best: stats.min(), stddev: stats.stddev(), note: note }, cssClass)
 					runScenario(index + 1)
 				}
 			}
