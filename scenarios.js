@@ -16,6 +16,19 @@ scenario({
 	name: 'Product Planning / Backlog',
 	parameters: {
 		menu: 'PrimaryBacklogPage'
+	},
+	onload: function($, V1) {
+//		V1.Html.Event.Fire($('input.datepicker[_v1_updater*=StartDate]').val(scopeChangeBegin)[0] ,"change")
+//		V1.Html.Event.Fire($('input.datepicker[_v1_updater*=EndDate]').val(scopeChangeEnd)[0] ,"change")
+		$('.FilterButtons .submit').click()
+	}
+})
+
+/*
+scenario({
+	name: 'Product Planning / Backlog',
+	parameters: {
+		menu: 'PrimaryBacklogPage'
 	}
 })
 
@@ -267,17 +280,15 @@ scenario({
 	}
 })
 
-/*
-scenario({
-	name: 'Reports / Test Trend',
-	parameters: {
-		menu: 'TestTrendPage'
-	},
-	onload: function($, V1) {
-		$('.FilterButtons .FilterGoButton .submit').click()
-	}
-})
-*/
+//scenario({
+//	name: 'Reports / Test Trend',
+//	parameters: {
+//		menu: 'TestTrendPage'
+//	},
+//	onload: function($, V1) {
+//		$('.FilterButtons .FilterGoButton .submit').click()
+//	}
+//})
 
 scenario({
 	name: 'Reports / Defect Priority Trend',
@@ -288,4 +299,5 @@ scenario({
 		$('.FilterButtons .submit').click()
 	}
 })
+*/
 
