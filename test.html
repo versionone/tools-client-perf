@@ -10,9 +10,10 @@
 	var defaults = {
 		minRounds: 3,
 		maxRounds: 15,
-		targetInterval: 0.1,
+		targetInterval: 0.10,
 		url: "Default.aspx",
-		parameters: {}
+		parameters: {},
+		showTimes: ''
 	}
 
 	Number.prototype.round = function round(places) {
@@ -235,7 +236,7 @@
 						median: stats.median().round(2), 
 						interval: '±' + stats.interval().toPercent(2),
 						rounds: rounds,
-						note: note || stats.values().toString()
+						note: note || (defaults.showTimes && stats.values().toString())
 					}, 
 					cssClass
 				)
@@ -269,7 +270,7 @@
 							median: stats.median().round(2), 
 							interval: '±' + stats.interval().toPercent(2),
 							rounds: rounds,
-							note: note || stats.values().toString()
+							note: note || (defaults.showTimes && stats.values().toString())
 						}, 
 						cssClass
 					)
