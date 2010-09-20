@@ -10,7 +10,7 @@
 	var defaults = {
 		minRounds: 3,
 		maxRounds: 15,
-		targetInterval: 0.05,
+		targetInterval: 0.1,
 		url: "Default.aspx",
 		parameters: {}
 	}
@@ -112,6 +112,8 @@
 		this.medianDeviation = function medianDeviation() { if (_count()) return _medianDeviation() }
 
 		this.interval = function interval() { if (_count()) return _interval() }
+
+		this.values = function values() { return _values }
 	}
 
 </script>
@@ -211,7 +213,7 @@
 			var targetInterval = typeof scenario.targetInterval === 'number' ? scenario.targetInterval : defaults.targetInterval
 
 			status(scenario.name)
-			status('', 'Starting')
+			status('Starting', 2)
 
 			function needARound() {
 				//if (rounds >= maxRounds) debugger
@@ -233,7 +235,7 @@
 						median: stats.median().round(2), 
 						interval: '±' + stats.interval().toPercent(2),
 						rounds: rounds,
-						note: note 
+						note: note || stats.values().toString()
 					}, 
 					cssClass
 				)
@@ -267,7 +269,7 @@
 							median: stats.median().round(2), 
 							interval: '±' + stats.interval().toPercent(2),
 							rounds: rounds,
-							note: note 
+							note: note || stats.values().toString()
 						}, 
 						cssClass
 					)
