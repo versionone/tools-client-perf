@@ -70,7 +70,6 @@
 	function Stats() {
 		var _sum = 0.0
 		var _sum_of_squares = 0.0
-		var _min = Number.POSITIVE_INFINITY
 		var _values = []
 
 		function _count() { return _values.length }
@@ -115,7 +114,6 @@
 		this.accumulate = function accumulate(value) {
 			_sum += value
 			_sum_of_squares += value * value
-			_min = Math.min(_min, value)
 
 			var index = 0
 			while (index < _values.length && _values[index] <= value)
@@ -127,7 +125,8 @@
 
 		this.sum = function sum() { if (_count()) return _sum }
 
-		this.min = function min() { if (_count()) return _min }
+		this.min = function min() { if (_count()) return _values[0] }
+		this.max = function max() { if (_count()) return _values[_values.length - 1] }
 
 		this.average = function average() { if (_count()) return _average() }
 
