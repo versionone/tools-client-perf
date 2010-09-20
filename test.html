@@ -3,18 +3,25 @@
 <script type='text/javascript' src='../scripts/jQuery.js'></script>
 <script type='text/javascript'>
 	var scenarios = []
+	function setup(s) { s.burn = true; scenarios.push(s) }
 	function scenario(s) { scenarios.push(s) }
 
 	var defaults = {
-		burn: 2,
-		repeat: 10,
+		minRounds: 3,
+		maxRounds: 15,
+		targetInterval: 0.05,
 		url: "Default.aspx",
 		parameters: {}
 	}
 
 	Number.prototype.round = function round(places) {
-		var pow10 = Math.pow(10, places)
+		var pow10 = Math.pow(10, places || 0)
 		return Math.round(this * pow10) / pow10
+	}
+
+	Number.prototype.toPercent = function toPercent(places) {
+		var pow10 = Math.pow(10, places || 0)
+		return Math.round(this * pow10 * 100) / pow10 + '%'
 	}
 
 	String.prototype.qparm = function qparm(name) {
@@ -28,6 +35,111 @@
 		return this
 	}
 
+	function Aspect(target, methodName) {
+		function makeStub(coreFn) {
+			var beforeFns = []
+			var afterFns = []
+
+			var stubFn = function stubFn() {
+				for (var i in beforeFns)
+					beforeFns[i].apply(this, arguments)
+				coreFn.apply(this, arguments)
+				for (var i in afterFns)
+					afterFns[i].apply(this, arguments)
+			}
+
+			stubFn.before = function(beforeFn) {
+				beforeFns.unshift(beforeFn)
+				return this
+			}
+
+			stubFn.after = function(afterFn) {
+				afterFns.unshift(afterFn)
+				return this
+			}
+
+			stubFn.isStub = true
+			return stubFn
+		}
+
+		var fn = target[methodName] || function(){}
+		if (!fn.isStub) target[methodName] = fn = makeStub(fn)
+		return fn			
+	}
+
+	function Stats() {
+		var _count = 0
+		var _sum = 0.0
+		var _sum_of_squares = 0.0
+		var _min = Number.POSITIVE_INFINITY
+		var _values = []
+
+		function _average() { return _sum / _count }
+
+		function _variance() {
+			var mean_of_squares = _sum_of_squares / _count
+			var mean = _average()
+			var square_of_means = mean * mean
+			return mean_of_squares - square_of_means
+		}
+
+		function _stddev() { return Math.sqrt(_variance()) }
+
+		function _medianOf(sortedArray) {
+			var lowerMedianIndex = Math.floor((sortedArray.length - 1) / 2.0)
+			var upperMedianIndex = Math.ceil((sortedArray.length - 1) / 2.0)
+			return (sortedArray[lowerMedianIndex] + sortedArray[upperMedianIndex]) / 2.0
+		}
+
+		function _median() { return _medianOf(_values) }
+
+		function project(array, projection) {
+			var output = []
+			for (var index in array)
+				output.push(projection(array[index]))
+			return output
+		}
+
+		function numerically(a, b) {return a - b}
+
+		function _medianDeviation() {
+			var median = _median()
+			function absoluteDeviation(value) {return Math.abs(value - median)}
+			var deviations = project(_values, absoluteDeviation).sort(numerically)
+			return _medianOf(deviations.sort(numerically))
+		}
+
+		function _interval() { return _medianDeviation() / _median() }
+
+		this.accumulate = function accumulate(value) {
+			++_count
+			_sum += value
+			_sum_of_squares += value * value
+			_min = Math.min(_min, value)
+
+			var index = 0
+			while (index < _values.length && _values[index] <= value)
+				++index
+			_values.splice(index, 0, value)
+		}
+
+		this.count = function count() { return _count }
+
+		this.sum = function sum() { if (_count) return _sum }
+
+		this.min = function min() { if (_count) return _min }
+
+		this.average = function average() { if (_count) return _average() }
+
+		this.stddev = function stddev() { if (_count) return _stddev() }
+
+		this.median = function median() { if (_count) return _median() }
+
+		this.medianDeviation = function medianDeviation() { if (_count) return _medianDeviation() }
+
+		this.interval = function interval() { if (_count) return _interval() }
+	}
+
 </script>
 <script type='text/javascript' src='parameters.js'></script>
 <script type='text/javascript' src='scenarios.js'></script>
@@ -35,8 +147,9 @@
 
 	$(function () {
 		var statusDiv = $('#status')
-		function status(message) {
-			statusDiv.text(message)
+		function status(message, h) {
+			tag = 'h' + (h || 1)
+			statusDiv.find(tag).text(message)
 		}
 
 		var logEntry = $('#log .entry')
@@ -59,7 +172,7 @@
 					var f = onload
 					onload = null
 					startTime = new Date().valueOf()
-					f(this.contentWindow.$, this.contentWindow.V1)
+					f(this.contentWindow.$, this.contentWindow.V1, function() { frame.trigger('load') })
 				}
 
 				else {
@@ -70,7 +183,7 @@
 					instance.addClass('loaded')
 						.fadeAway(5000)
 						.find('.timing').text(elapsed + ' seconds')
-					instance.find('iframe').unbind('load')
+					frame.unbind('load')
 
 					onFinish(elapsed, locationHref)
 				}
@@ -78,7 +191,8 @@
 
 			var instance = template.clone(false).show()
 			instance.find('.title').text(title)
-			instance.find('iframe').attr('src', url).load(frameLoaded)
+			var frame = instance.find('iframe')
+			frame.attr('src', url).load(frameLoaded)
 			frames.append(instance)
 
 			var startTime = new Date().valueOf()
@@ -97,84 +211,81 @@
 			return a.join('')
 		}
 
-		function Stats() {
-			this._count = 0
-			this._sum = 0.0
-			this._sum_of_squares = 0.0
-			this._min = Number.POSITIVE_INFINITY
-
-			this.accumulate = function accumulate(value) {
-				++this._count
-				this._sum += value
-				this._sum_of_squares += value * value
-				this._min = Math.min(this._min, value)
-			}
-
-			this.count = function count() { return this._count }
-
-			this.sum = function sum() { if (this._count) return this._sum.round(2) }
-
-			this.min = function min() { if (this._count) return this._min.round(2) }
-
-			this._average = function() { return this._sum / this._count }
-
-			this.average = function average() { if (this._count) return (this._average()).round(2) }
-
-			this.stddev = function stddev() {
-				if (this._count) {
-					var mean_of_squares = this._sum_of_squares / this._count
-					var mean = this._average()
-					var square_of_means = mean * mean
-					var variance = mean_of_squares - square_of_means
-					return Math.sqrt(variance).round(2)
-				}
-			}
-		}
-
 		function runScenario(index) {
-			if (index >= scenarios.length) return finished()
+			if (index >= scenarios.length) {
+				status('Complete')
+				status('', 2)
+				return finished()
+			}
 
 			var scenario = scenarios[index]
 
 			var url = makeUrl('../' + (scenario.url || defaults.url), scenario.parameters || defaults.parameters)
-			var burn = typeof scenario.burn === 'number' ? scenario.burn : defaults.burn
-			var repeat = typeof scenario.repeat === 'number' ? scenario.repeat : defaults.repeat
-			var doLog = repeat > 0
 
 			var stats = new Stats()
 			var note = ''
 			var cssClass = 'complete'
+			var rounds = 0
+			var bust, uniqueUrl
 
-			function queueMe() {
-				setTimeout(doMe, 0)
+			var minRounds = typeof scenario.minRounds === 'number' ? scenario.minRounds : defaults.minRounds
+			var maxRounds = typeof scenario.maxRounds === 'number' ? scenario.maxRounds : defaults.maxRounds
+			var targetInterval = typeof scenario.targetInterval === 'number' ? scenario.targetInterval : defaults.targetInterval
+
+			status(scenario.name)
+			status('', 'Starting')
+
+			function needARound() {
+				//if (rounds >= maxRounds) debugger
+				return rounds < maxRounds && (rounds < minRounds || stats.interval() > targetInterval)
+			}
+
+			function runNextScenario() { runScenario(index + 1) }
+
+			function finishRound(time, actualUrl) {
+				if (actualUrl.qparm('bust') != bust)
+				{
+					note += 'Wanted ' + uniqueUrl + ' but got ' + actualUrl + '.'
+					cssClass = 'warning'
+				}
+				stats.accumulate(time)
+				queueMe()
 			}
 
 			function doMe() {
-				status(scenario.name + ' (' + (burn + repeat).toString() + ')')
-				var uniqueUrl = makeUrl(url, { bust: (new Date()).valueOf() })
-				if (burn) {
-					--burn
-					loadFrame(scenario.name + ' (burn)', uniqueUrl, queueMe)
+				bust = (new Date()).valueOf()
+				uniqueUrl = makeUrl(url, { bust: bust })
+				if (scenario.burn) {
+					status('Setting Up', 2)
+					loadFrame(scenario.name, uniqueUrl, runNextScenario)
 				}
-				else if (repeat) {
-					--repeat
-					loadFrame(scenario.name, uniqueUrl, function finish(time, actualUrl) {
-						if (uniqueUrl.qparm('bust') != actualUrl.qparm('bust'))
-						{
-							note += 'Wanted ' + uniqueUrl + ' but got ' + actualUrl + '.'
-							cssClass = 'warning'
-						}
-						stats.accumulate(time)
-						queueMe()
-					}, scenario.onload)
+				else if (needARound()) {
+					++rounds
+					var message = 'Round ' + rounds
+					if (rounds > 1)
+						message += ': ' + stats.median().round(2)
+					if (rounds > minRounds)
+						message += ' ±' + stats.interval().toPercent(2)
+					status(message, 2)
+					loadFrame(scenario.name, uniqueUrl, finishRound, scenario.onload)
 				}
 				else {
-					status('Done')
-					if (doLog)
-						log({ name: scenario.name, average: stats.average(), best: stats.min(), stddev: stats.stddev(), note: note }, cssClass)
-					runScenario(index + 1)
+					status('Done', 2)
+					log(
+						{ 
+							name: scenario.name, 
+							median: stats.median().round(2), 
+							interval: '±' + stats.interval().toPercent(2),
+							rounds: rounds,
+							note: note 
+						}, 
+						cssClass
+					)
+					runNextScenario()
 				}
 			}
+
+			function queueMe() { setTimeout(doMe, 0) }
 
 			queueMe()
 		}
@@ -194,24 +305,27 @@
 .input { display: inline-block; }
 .input .label { display: block; }
 #url { width: 800px; }
-.template { width: 300px; border: 2px solid red; display: inline-block; }
+.template { width: 400px; border: 2px solid red; display: inline-block; }
 .template.loaded { border: 2px solid green; }
 .timing, .title { background-color: #F88; height: 20px; text-align: center; }
 .loaded .timing, .loaded .title { background-color: #8F8; }
-IFRAME { width: 300px; height: 200px; border: 0; }
+IFRAME { width: 100%; height: 500px; border: 0; }
 .output { display: inline-block; border: 1px solid grey; padding: 5px; }
 .output .value { background-color: #F88; } 
 .output.loaded .value { background-color: #8F8; }
 #status { padding: 5px; margin: 5px 0; background-color: Silver; }
 #log { border-collapse: collapse; margin: 5px 0; }
-#log .average, #log .best, #log .stddev { text-align: right; width: 10em; }
+#log .number { text-align: right; width: 10em; }
 #log .warning { background-color: #F88; }
 </style>
 
 </head>
 <body>
 	
-<div id='status'>Not Started</div>
+<div id='status'>
+	<h1>Not Started</h1>
+	<h2></h2>
+</div>
 
 <div id='frames'>
 </div>
@@ -226,17 +340,17 @@ IFRAME { width: 300px; height: 200px; border: 0; }
 	<thead>
 		<tr>
 			<th>Scenario</th>
-			<th>Average</th>
-			<th>Best</th>
-			<th>σ</th>
+			<th>median</th>
+			<th>50% Interval</th>
+			<th>Rounds</th>
 			<th>notes</th>
 		</tr>
 	</thead>
 	<tr class='entry'>
 		<td class='name'>&nbsp;</td>
-		<td class='average'>&nbsp;</td>
-		<td class='best'>&nbsp;</td>
-		<td class='stddev'>&nbsp;</td>
+		<td class='number median'>&nbsp;</td>
+		<td class='number interval'>&nbsp;</td>
+		<td class='number rounds'>&nbsp;</td>
 		<td class='note'>&nbsp;</td>
 	</tr>
 </table>

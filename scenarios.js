@@ -3,28 +3,15 @@ if (typeof ticket==='undefined' || !ticket.replace(/[ \t\?]/g, '')) {
 	throw "Need ticket to be specified in parameters.js"
 }
 
-scenario({
+setup({
 	name: "Initialize and Login",
-	burn: 1, repeat: 0,
 	parameters: {
 		ticket: ticket,
-		PrimaryScopeContext: bigProject
+		PrimaryScopeContext: bigProject,
+		menu: 'MyHomeEnterpriseGettingStartedPage'
 	}
 })
 
-scenario({
-	name: 'Product Planning / Backlog',
-	parameters: {
-		menu: 'PrimaryBacklogPage'
-	},
-	onload: function($, V1) {
-//		V1.Html.Event.Fire($('input.datepicker[_v1_updater*=StartDate]').val(scopeChangeBegin)[0] ,"change")
-//		V1.Html.Event.Fire($('input.datepicker[_v1_updater*=EndDate]').val(scopeChangeEnd)[0] ,"change")
-		$('.FilterButtons .submit').click()
-	}
-})
-
-/*
 scenario({
 	name: 'Product Planning / Backlog',
 	parameters: {
@@ -88,9 +75,8 @@ scenario({
 	}
 })
 
-scenario({
+setup({
 	name: 'Release Planning / Release Forecast (Reset Defaults)',
-	burn: 1, repeat: 0,
 	url: 'ui.v1',
 	parameters: {
 		gadget: '/Widgets/Containers/Planning/ReleasePlanning/ReleaseForecastingResults/Gadget',
@@ -141,9 +127,8 @@ scenario({
 	}
 })
 
-scenario({
-	name: 'Iteration Tracking / Detail Tracking (change iteration filter)',
-	burn: 1, repeat: 0,
+setup({
+	name: 'Change Iteration Filter',
 	parameters: {
 		menu: 'DetailTrackingPage'
 	},
@@ -299,5 +284,17 @@ scenario({
 		$('.FilterButtons .submit').click()
 	}
 })
-*/
+
+scenario({
+	name: 'Expand Project Tree',
+	parameters: {
+		menu: 'PrimaryBacklogPage',
+		PrimaryScopeContext: bigProject
+	},
+	onload: function($, V1, end) {
+		Aspect(V1.Gadgets.ContextTree, 'Initialize').after(end)
+		V1.Html.Event.Fire($('.ScopeContext .DropDown')[0], 'click')
+	}
+})
+
 
