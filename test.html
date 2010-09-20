@@ -92,7 +92,7 @@
 			var median = _median()
 			function absoluteDeviation(value) {return Math.abs(value - median)}
 			var deviations = project(_values, absoluteDeviation).sort(numerically)
-			return _medianOf(deviations.sort(numerically))
+			return _medianOf(deviations)
 		}
 
 		function _interval() { return _medianDeviation() / _median() }
