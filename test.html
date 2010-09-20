@@ -68,16 +68,17 @@
 	}
 
 	function Stats() {
-		var _count = 0
 		var _sum = 0.0
 		var _sum_of_squares = 0.0
 		var _min = Number.POSITIVE_INFINITY
 		var _values = []
 
-		function _average() { return _sum / _count }
+		function _count() { return _values.length }
+
+		function _average() { return _sum / _count() }
 
 		function _variance() {
-			var mean_of_squares = _sum_of_squares / _count
+			var mean_of_squares = _sum_of_squares / _count()
 			var mean = _average()
 			var square_of_means = mean * mean
 			return mean_of_squares - square_of_means
@@ -112,7 +113,6 @@
 		function _interval() { return _medianDeviation() / _median() }
 
 		this.accumulate = function accumulate(value) {
-			++_count
 			_sum += value
 			_sum_of_squares += value * value
 			_min = Math.min(_min, value)
@@ -123,21 +123,21 @@
 			_values.splice(index, 0, value)
 		}
 
-		this.count = function count() { return _count }
+		this.count = function count() { return _count() }
 
-		this.sum = function sum() { if (_count) return _sum }
+		this.sum = function sum() { if (_count()) return _sum }
 
-		this.min = function min() { if (_count) return _min }
+		this.min = function min() { if (_count()) return _min }
 
-		this.average = function average() { if (_count) return _average() }
+		this.average = function average() { if (_count()) return _average() }
 
-		this.stddev = function stddev() { if (_count) return _stddev() }
+		this.stddev = function stddev() { if (_count()) return _stddev() }
 
-		this.median = function median() { if (_count) return _median() }
+		this.median = function median() { if (_count()) return _median() }
 
-		this.medianDeviation = function medianDeviation() { if (_count) return _medianDeviation() }
+		this.medianDeviation = function medianDeviation() { if (_count()) return _medianDeviation() }
 
-		this.interval = function interval() { if (_count) return _interval() }
+		this.interval = function interval() { if (_count()) return _interval() }
 	}
 
 </script>
