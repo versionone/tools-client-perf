@@ -72,31 +72,6 @@
 
 		function _count() { return _values.length }
 
-		function _sum() {
-			var sum = 0.0
-			for (var i in _values) sum += _values[i]
-			return sum
-		}
-
-		function _average() { return _sum() / _count() }
-
-		function _sum_of_squares() {
-			var sum_of_squares = 0.0
-			for (var i in _values) sum_of_squares += _values[i] * _values[i]
-			return sum_of_squares
-		}
-
-		function _mean_of_squares() { return _sum_of_squares() / _count() }
-
-		function _square_of_means() {
-			var mean = _average()
-			return mean * mean
-		}
-
-		function _variance() { return _mean_of_squares() - _square_of_means() }
-
-		function _stddev() { return Math.sqrt(_variance()) }
-
 		function _medianOf(sortedArray) {
 			var lowerMedianIndex = Math.floor((sortedArray.length - 1) / 2.0)
 			var upperMedianIndex = Math.ceil((sortedArray.length - 1) / 2.0)
@@ -130,15 +105,6 @@
 		}
 
 		this.count = function count() { return _count() }
-
-		this.sum = function sum() { if (_count()) return _sum() }
-
-		this.min = function min() { if (_count()) return _values[0] }
-		this.max = function max() { if (_count()) return _values[_values.length - 1] }
-
-		this.average = function average() { if (_count()) return _average() }
-
-		this.stddev = function stddev() { if (_count()) return _stddev() }
 
 		this.median = function median() { if (_count()) return _median() }
 
