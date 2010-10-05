@@ -68,6 +68,14 @@ scenario({
 	}
 })
 
+setup({
+	name: 'Release Planning / Release Scheduling (Change Scope)',
+	parameters: {
+		menu: 'ReleaseSchedulingPage',
+		PrimaryScopeContext: projectWithSchedule
+	}
+})
+
 scenario({
 	name: 'Release Planning / Release Scheduling',
 	parameters: {
@@ -101,8 +109,7 @@ scenario({
 scenario({
 	name: 'Iteration Planning / Iteration Scheduling',
 	parameters: {
-		menu: 'IterationSchedulingPage',
-		PrimaryScopeContext: projectWithSchedule
+		menu: 'IterationSchedulingPage'
 	}
 })
 
