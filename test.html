@@ -254,7 +254,7 @@
 			}
 
 			function inspectPage($, V1) {
-				return {
+				if ($) return {
 					primaryScope: $('#PrimaryScope_Link').attr('rel')
 				}
 			}
