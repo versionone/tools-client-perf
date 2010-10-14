@@ -122,7 +122,7 @@
 <script type='text/javascript' src='scenarios.js'></script>
 <script type='text/javascript'>
 
-	$(function () {
+	$(function() {
 		var statusDiv = $('#status')
 		function status(message, h) {
 			tag = 'h' + (h || 1)
@@ -140,15 +140,23 @@
 			for (var propertyName in values)
 				entry.find('.' + propertyName).text(values[propertyName])
 			logEntries.append(entry)
-			entry.stop().css('backgroundColor', '#00FFFF').animate({backgroundColor:'#FFFFFF'}, 2000)
+			entry.stop().css('backgroundColor', '#00FFFF').animate({ backgroundColor: '#FFFFFF' }, 2000)
 		}
 
 		var frames = $('#frames')
 
 		var template = $('.template').hide()
 
-		function loadFrame(title, url, onFinish, onload) {
+		function loadFrame(title, url, onFinish, inspect, onload) {
 			function frameLoaded() {
+				var endTime = new Date().valueOf()
+
+				var inspection
+				if (inspect) {
+					inspection = inspect(this.contentWindow.$, this.contentWindow.V1)
+					inspect = null
+				}
+
 				if (onload) {
 					var f = onload
 					onload = null
@@ -157,7 +165,6 @@
 				}
 
 				else {
-					var endTime = new Date().valueOf()
 					var elapsed = (endTime - startTime) / 1000.0
 					var locationHref = this.contentWindow.location.href
 
@@ -166,7 +173,7 @@
 						.find('.timing').text(elapsed + ' seconds')
 					frame.unbind('load')
 
-					onFinish(elapsed, locationHref)
+					onFinish(elapsed, locationHref, inspection)
 				}
 			}
 
@@ -223,24 +230,33 @@
 
 			function runNextScenario() { runScenario(index + 1) }
 
-			function finishRound(time, actualUrl) {
-				if (actualUrl.qparm('bust') != bust)
-				{
-					note += 'Wanted ' + uniqueUrl + ' but got ' + actualUrl + '.'
+			function finishRound(time, actualUrl, inspection) {
+				if (actualUrl.qparm('bust') != bust) {
+					note += 'Wanted ' + uniqueUrl + ' but got ' + actualUrl + '; '
+					cssClass = 'warning'
+				}
+				if (scenario.verifyScope && scenario.verifyScope != inspection.primaryScope) {
+					note += 'Wanted ' + scenario.verifyScope + ' but got ' + inspection.primaryScope + '; '
 					cssClass = 'warning'
 				}
 				stats.accumulate(time)
 				log(
-					{ 
-						name: scenario.name, 
-						median: stats.median().round(2), 
+					{
+						name: scenario.name,
+						median: stats.median().round(2),
 						interval: '±' + stats.interval().toPercent(2),
 						rounds: rounds,
 						note: note || (defaults.showTimes && stats.values().toString())
-					}, 
+					},
 					cssClass
 				)
 				queueMe()
+			}
+
+			function inspectPage($, V1) {
+				return {
+					primaryScope: $('#PrimaryScope_Link').attr('rel')
+				}
 			}
 
 			function doMe() {
@@ -248,7 +264,7 @@
 				uniqueUrl = makeUrl(url, { bust: bust })
 				if (scenario.burn) {
 					status('Setting Up', 2)
-					loadFrame(scenario.name, uniqueUrl, runNextScenario)
+					loadFrame(scenario.name, uniqueUrl, runNextScenario, inspectPage)
 				}
 				else if (needARound()) {
 					if (!rounds)
@@ -260,18 +276,18 @@
 					if (rounds > minRounds)
 						message += ' ±' + stats.interval().toPercent(2)
 					status(message, 2)
-					loadFrame(scenario.name, uniqueUrl, finishRound, scenario.onload)
+					loadFrame(scenario.name, uniqueUrl, finishRound, inspectPage, scenario.onload)
 				}
 				else {
 					status('Done', 2)
 					log(
-						{ 
-							name: scenario.name, 
-							median: stats.median().round(2), 
+						{
+							name: scenario.name,
+							median: stats.median().round(2),
 							interval: '±' + stats.interval().toPercent(2),
 							rounds: rounds,
 							note: note || (defaults.showTimes && stats.values().toString())
-						}, 
+						},
 						cssClass
 					)
 					runNextScenario()

@@ -16,56 +16,64 @@ scenario({
 	name: 'Product Planning / Backlog',
 	parameters: {
 		menu: 'PrimaryBacklogPage'
-	}
+	},
+	verifyScope: bigProject
 })
 
 scenario({
 	name: 'Product Planning / Goals',
 	parameters: {
 		menu: 'GoalsPage'
-	}
+	},
+	verifyScope: bigProject
 })
 
 scenario({
 	name: 'Product Planning / Goal Assignment',
 	parameters: {
 		menu: 'GoalAssignmentPage'
-	}
+	},
+	verifyScope: bigProject
 })
 
 scenario({
 	name: 'Product Planning / Themes',
 	parameters: {
 		menu: 'ThemeAssignmentPage'
-	}
+	},
+	verifyScope: bigProject
 })
 
 scenario({
 	name: 'Product Planning / Epics',
 	parameters: {
 		menu: 'EpicsPage'
-	}
+	},
+	verifyScope: bigProject
 })
 
 scenario({
 	name: 'Product Planning / Requests',
 	parameters: {
 		menu: 'RequestsPlanningPage'
-	}
+	},
+	verifyScope: bigProject
 })
 
 scenario({
 	name: 'Product Planning / Issues',
 	parameters: {
 		menu: 'IssuesProductPlanningPage'
-	}
+	},
+	verifyScope: bigProject
 })
 
 scenario({
 	name: 'Product Planning / Templates',
 	parameters: {
 		menu: 'TemplatesPage'
-	}
+	},
+	verifyScope: bigProject
 })
 
 setup({
@@ -80,7 +88,8 @@ scenario({
 	name: 'Release Planning / Release Scheduling',
 	parameters: {
 		menu: 'ReleaseSchedulingPage'
-	}
+	},
+	verifyScope: projectWithSchedule
 })
 
 setup({
@@ -96,42 +105,48 @@ scenario({
 	name: 'Release Planning / Release Forecasting',
 	parameters: {
 		menu: 'ReleaseForecastingPage'
-	}
+	},
+	verifyScope: projectWithSchedule
 })
 
 scenario({
 	name: 'Release Planning / Team Scheduling',
 	parameters: {
 		menu: 'TeamAssignmentPage'
-	}
+	},
+	verifyScope: projectWithSchedule
 })
 
 scenario({
 	name: 'Iteration Planning / Iteration Scheduling',
 	parameters: {
 		menu: 'IterationSchedulingPage'
-	}
+	},
+	verifyScope: projectWithSchedule
 })
 
 scenario({
 	name: 'Iteration Planning / Detail Planning',
 	parameters: {
 		menu: 'DetailPlanningPage'
-	}
+	},
+	verifyScope: projectWithSchedule
 })
 
 scenario({
 	name: 'Iteration Planning / Member Planning',
 	parameters: {
 		menu: 'MemberPlanningPage'
-	}
+	},
+	verifyScope: projectWithSchedule
 })
 
 scenario({
 	name: 'Iteration Planning / Issues',
 	parameters: {
 		menu: 'IssuesIterationPlanningPage'
-	}
+	},
+	verifyScope: projectWithSchedule
 })
 
 setup({
@@ -148,56 +163,64 @@ scenario({
 	name: 'Iteration Tracking / Detail Tracking',
 	parameters: {
 		menu: 'DetailTrackingPage'
-	}
+	},
+	verifyScope: projectWithSchedule
 })
 
 scenario({
 	name: 'Iteration Tracking / Storyboard',
 	parameters: {
 		menu: 'StoryBoardPage'
-	}
+	},
+	verifyScope: projectWithSchedule
 })
 
 scenario({
 	name: 'Iteration Tracking / Taskboard',
 	parameters: {
 		menu: 'TaskBoardPage'
-	}
+	},
+	verifyScope: projectWithSchedule
 })
 
 scenario({
 	name: 'Iteration Tracking / Testboard',
 	parameters: {
 		menu: 'TestBoardPage'
-	}
+	},
+	verifyScope: projectWithSchedule
 })
 
 scenario({
 	name: 'Iteration Tracking / Member Tracking',
 	parameters: {
 		menu: 'MemberTrackingPage'
-	}
+	},
+	verifyScope: projectWithSchedule
 })
 
 scenario({
 	name: 'Iteration Tracking / Issues',
 	parameters: {
 		menu: 'IterationTrackingIssuesPage'
-	}
+	},
+	verifyScope: projectWithSchedule
 })
 
 scenario({
 	name: 'Standup Dashboard',
 	parameters: {
 		menu: 'StandupDashboardPopupPage'
-	}
+	},
+	verifyScope: projectWithSchedule
 })
 
 scenario({
 	name: 'Reports / Project Summary',
 	parameters: {
 		menu: 'ProjectSummaryPage'
-	}
+	},
+	verifyScope: projectWithSchedule
 })
 
 scenario({
@@ -205,6 +228,7 @@ scenario({
 	parameters: {
 		menu: 'ProjectScopeChangePage'
 	},
+	verifyScope: projectWithSchedule,
 	onload: function($, V1) {
 		V1.Html.Event.Fire($('input.datepicker[_v1_updater*=StartDate]').val(scopeChangeBegin)[0] ,"change")
 		V1.Html.Event.Fire($('input.datepicker[_v1_updater*=EndDate]').val(scopeChangeEnd)[0] ,"change")
@@ -217,6 +241,7 @@ scenario({
 	parameters: {
 		menu: 'EstimateBurndownPage'
 	},
+	verifyScope: projectWithSchedule,
 	onload: function($) { 
 		$('.FilterButtons .submit').click()
 	}
@@ -227,6 +252,7 @@ scenario({
 	parameters: {
 		menu: 'TotalVelocityPage'
 	},
+	verifyScope: projectWithSchedule,
 	onload: function($, V1) {
 		$('.FilterButtons .submit').click()
 	}
@@ -237,6 +263,7 @@ scenario({
 	parameters: {
 		menu: 'EstimateTrendPage'
 	},
+	verifyScope: projectWithSchedule,
 	onload: function($, V1) {
 		$('.FilterButtons .submit').click()
 	}
@@ -247,6 +274,7 @@ scenario({
 	parameters: {
 		menu: 'ThemeDashboardPage'
 	},
+	verifyScope: projectWithSchedule,
 	onload: function($, V1) {
 		$('.FilterButtons .submit').click()
 	}
@@ -257,6 +285,7 @@ scenario({
 	parameters: {
 		menu: 'ProjectRoadmapPage'
 	},
+	verifyScope: projectWithSchedule,
 	onload: function($, V1) {
 		$('.FilterButtons .submit').click()
 	}
@@ -267,6 +296,7 @@ scenario({
 	parameters: {
 		menu: 'ThemeRoadmapPage'
 	},
+	verifyScope: projectWithSchedule,
 	onload: function($, V1) {
 		$('.FilterButtons .submit').click()
 	}
@@ -287,6 +317,7 @@ scenario({
 	parameters: {
 		menu: 'DefectPriorityTrendPage'
 	},
+	verifyScope: projectWithSchedule,
 	onload: function($, V1) {
 		$('.FilterButtons .submit').click()
 	}
@@ -298,6 +329,7 @@ scenario({
 		menu: 'PrimaryBacklogPage',
 		PrimaryScopeContext: bigProject
 	},
+	verifyScope: projectWithSchedule,
 	onload: function($, V1, end) {
 		Aspect(V1.Gadgets.ContextTree, 'Initialize').after(end)
 		V1.Html.Event.Fire($('.ScopeContext .DropDown')[0], 'click')
