@@ -149,13 +149,9 @@
 		var template = $('.template').hide()
 
 		function loadFrame(title, url, onFinish, inspect, onload) {
-		
-			var inspection
+
 			function frameLoaded() {
 				var endTime = new Date().valueOf()
-
-				if (inspect && !inspection)
-					inspection = inspect(this.contentWindow.$, this.contentWindow.V1)
 
 				if (onload) {
 					var f = onload
@@ -167,6 +163,10 @@
 				else {
 					var elapsed = (endTime - startTime) / 1000.0
 					var locationHref = this.contentWindow.location.href
+
+					var inspection
+					if (inspect)
+						inspection = inspect(this.contentWindow.$, this.contentWindow.V1)
 
 					instance.addClass('loaded')
 						.fadeAway(5000)
@@ -239,6 +239,10 @@
 					note += 'Wanted ' + scenario.verifyScope + ' but got ' + inspection.primaryScope + '; '
 					cssClass = 'warning'
 				}
+				if (inspection && inspection.exception) {
+					note += 'Exception: ' + inspection.exception + '; '
+					cssClass = 'error'
+				}
 				stats.accumulate(time)
 				log(
 					{
@@ -255,7 +259,8 @@
 
 			function inspectPage($, V1) {
 				if ($) return {
-					primaryScope: $('#PrimaryScope_Link').attr('rel')
+					primaryScope: $('#PrimaryScope_Link').attr('rel'),
+					exception: $('.ExceptionDetails').text().replace(/^\s\s*/, '').substring(0, 50)
 				}
 			}
 
