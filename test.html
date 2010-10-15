@@ -138,8 +138,11 @@
 			if (!entry.length)
 				entry = logEntry.clone().attr('data-key', key)
 			entry.addClass(cssClass)
-			for (var propertyName in values)
-				entry.find('.' + propertyName).text(values[propertyName])
+			for (var propertyName in values) {
+				var value = values[propertyName]
+				var cell = entry.find('.' + propertyName)
+				typeof value === "string" ? cell.text(value) : cell.html(value)
+			}
 			logEntries.append(entry)
 			entry.stop()
 				.css({ backgroundColor: '#00FFFF' })
@@ -213,7 +216,6 @@
 			var url = makeUrl('../' + (scenario.url || defaults.url), scenario.parameters || defaults.parameters)
 
 			var stats = new Stats()
-			var note = ''
 			var cssClass = 'complete'
 			var rounds = 0
 			var bust, uniqueUrl
@@ -225,6 +227,15 @@
 			status(scenario.name)
 			status('Starting', 2)
 
+			var note
+			function addNote(text, newCssClass) {
+				debugger
+				newCssClass && (cssClass = newCssClass)
+				var div = $("<div/>").text(text)[0]
+				note || (note = document.createDocumentFragment())
+				note.appendChild(div)
+			}
+
 			function needARound() {
 				//if (rounds >= maxRounds) debugger
 				return rounds < maxRounds && (rounds < minRounds || stats.interval() > targetInterval)
@@ -234,16 +245,13 @@
 
 			function finishRound(time, actualUrl, inspection) {
 				if (actualUrl.qparm('bust') != bust) {
-					note += 'Wanted ' + uniqueUrl + ' but got ' + actualUrl + '; '
-					cssClass = 'warning'
+					addNote('Wanted ' + uniqueUrl + ' but got ' + actualUrl, 'warning')
 				}
 				if (scenario.verifyScope && inspection && scenario.verifyScope != inspection.primaryScope) {
-					note += 'Wanted ' + scenario.verifyScope + ' but got ' + inspection.primaryScope + '; '
-					cssClass = 'warning'
+					addNote('Wanted ' + scenario.verifyScope + ' but got ' + inspection.primaryScope, 'warning')
 				}
 				if (inspection && inspection.exception) {
-					note += 'Exception: ' + inspection.exception + '; '
-					cssClass = 'error'
+					addNote('Exception: ' + inspection.exception, 'error')
 				}
 				stats.accumulate(time)
 				log(
