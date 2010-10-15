@@ -139,9 +139,10 @@
 				entry = logEntry.clone().attr('data-key', key)
 			entry.addClass(cssClass)
 			for (var propertyName in values) {
-				var value = values[propertyName]
 				var cell = entry.find('.' + propertyName)
-				typeof value === "string" ? cell.text(value) : cell.html(value)
+				var value = values[propertyName]
+				if (value.nodeType) value = $(value)
+				value.jquery ? cell.html(value.clone()) : cell.text(value)
 			}
 			logEntries.append(entry)
 			entry.stop()
@@ -167,18 +168,17 @@
 
 				else {
 					var elapsed = (endTime - startTime) / 1000.0
-					var locationHref = this.contentWindow.location.href
 
 					var inspection
 					if (inspect)
-						inspection = inspect(this.contentWindow.$, this.contentWindow.V1)
+						inspection = inspect(this.contentWindow.$, this.contentWindow.V1, this.contentWindow)
 
 					instance.addClass('loaded')
 						.fadeAway(5000)
 						.find('.timing').text(elapsed + ' seconds')
 					frame.unbind('load')
 
-					onFinish(elapsed, locationHref, inspection)
+					onFinish(elapsed, inspection)
 				}
 			}
 
@@ -230,21 +230,19 @@
 			var note
 			function addNote(text, newCssClass) {
 				newCssClass && (cssClass = newCssClass)
-				var div = $("<div/>").text(text)[0]
-				note || (note = document.createDocumentFragment())
-				note.appendChild(div)
+				note || (note = $("<div/>"))
+				note.append($("<p/>").text(text))
 			}
 
 			function needARound() {
-				//if (rounds >= maxRounds) debugger
 				return rounds < maxRounds && (rounds < minRounds || stats.interval() > targetInterval)
 			}
 
 			function runNextScenario() { runScenario(index + 1) }
 
-			function finishRound(time, actualUrl, inspection) {
-				if (actualUrl.qparm('bust') != bust) {
-					addNote('Wanted ' + uniqueUrl + ' but got ' + actualUrl, 'warning')
+			function finishRound(time, inspection) {
+				if (inspection && inspection.bust != bust) {
+					addNote('Wanted ' + uniqueUrl + ' but got ' + inspection.href, 'warning')
 				}
 				if (scenario.verifyScope && inspection && scenario.verifyScope != inspection.primaryScope) {
 					addNote('Wanted ' + scenario.verifyScope + ' but got ' + inspection.primaryScope, 'warning')
@@ -266,11 +264,16 @@
 				queueMe()
 			}
 
-			function inspectPage($, V1) {
-				if ($) return {
-					primaryScope: $('#PrimaryScope_Link').attr('rel'),
-					exception: $('.ExceptionDetails').text().replace(/^\s\s*/, '').substring(0, 50)
+			function inspectPage($, V1, window) {
+				var inspection = {
+					href: window.location.href,
+					bust: window.location.href.qparm('bust')
 				}
+				if ($) {
+					inspection.primaryScope = $('#PrimaryScope_Link').attr('rel')
+					inspection.exception = $('.ExceptionDetails').text().replace(/^\s\s*/, '').substring(0, 50)
+				}
+				return inspection
 			}
 
 			function doMe() {
