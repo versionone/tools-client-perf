@@ -211,8 +211,7 @@ scenario({
 	name: 'Standup Dashboard',
 	parameters: {
 		menu: 'StandupDashboardPopupPage'
-	},
-	verifyScope: projectWithSchedule
+	}
 })
 
 scenario({
