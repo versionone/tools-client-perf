@@ -301,16 +301,6 @@ scenario({
 	}
 })
 
-//scenario({
-//	name: 'Reports / Test Trend',
-//	parameters: {
-//		menu: 'TestTrendPage'
-//	},
-//	onload: function($, V1) {
-//		$('.FilterButtons .FilterGoButton .submit').click()
-//	}
-//})
-
 scenario({
 	name: 'Reports / Defect Priority Trend',
 	parameters: {
@@ -328,7 +318,7 @@ scenario({
 		menu: 'PrimaryBacklogPage',
 		PrimaryScopeContext: bigProject
 	},
-	verifyScope: projectWithSchedule,
+	verifyScope: bigProject,
 	onload: function($, V1, end) {
 		Aspect(V1.Gadgets.ContextTree, 'Initialize').after(end)
 		V1.Html.Event.Fire($('.ScopeContext .DropDown')[0], 'click')
