@@ -136,7 +136,8 @@
 			var key = values[keyindex || 'name']
 			var entry = logEntries.find('[data-key="' + key + '"]')
 			if (!entry.length)
-				entry = logEntry.clone().addClass(cssClass).attr('data-key', key)
+				entry = logEntry.clone().attr('data-key', key)
+			entry.addClass(cssClass)
 			for (var propertyName in values)
 				entry.find('.' + propertyName).text(values[propertyName])
 			logEntries.append(entry)
@@ -148,14 +149,13 @@
 		var template = $('.template').hide()
 
 		function loadFrame(title, url, onFinish, inspect, onload) {
+		
+			var inspection
 			function frameLoaded() {
 				var endTime = new Date().valueOf()
 
-				var inspection
-				if (inspect) {
+				if (inspect && !inspection)
 					inspection = inspect(this.contentWindow.$, this.contentWindow.V1)
-					inspect = null
-				}
 
 				if (onload) {
 					var f = onload
@@ -235,7 +235,7 @@
 					note += 'Wanted ' + uniqueUrl + ' but got ' + actualUrl + '; '
 					cssClass = 'warning'
 				}
-				if (scenario.verifyScope && scenario.verifyScope != inspection.primaryScope) {
+				if (scenario.verifyScope && inspection && scenario.verifyScope != inspection.primaryScope) {
 					note += 'Wanted ' + scenario.verifyScope + ' but got ' + inspection.primaryScope + '; '
 					cssClass = 'warning'
 				}
