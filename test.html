@@ -141,7 +141,9 @@
 			for (var propertyName in values)
 				entry.find('.' + propertyName).text(values[propertyName])
 			logEntries.append(entry)
-			entry.stop().css('backgroundColor', '#00FFFF').animate({ backgroundColor: '#FFFFFF' }, 2000)
+			entry.stop()
+				.css({ backgroundColor: '#00FFFF' })
+				.animate({ backgroundColor: '#FFFFFF' }, 'slow', function() { entry.css({ backgroundColor: '' }) })
 		}
 
 		var frames = $('#frames')
@@ -325,6 +327,7 @@ IFRAME { width: 100%; height: 500px; border: 0; }
 #log { border-collapse: collapse; margin: 5px 0; float: left; width: 48%; }
 #log .number { text-align: right; }
 #log .warning { background-color: #F88; }
+#log .error { background-color: #F00; }
 </style>
 
 </head>
