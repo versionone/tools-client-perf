@@ -12,6 +12,24 @@ setup({
 	}
 })
 
+//setup({
+//	name: "Turn Left-Nav off",
+//	url: 'ui.v1',
+//	parameters: {
+//		gadget: 'Gadgets/CollapsibleLeftNav',
+//		Changes: '{Show:"False"}'
+//	}
+//})
+
+setup({
+	name: "Turn Left-Nav on",
+	url: 'ui.v1',
+	parameters: {
+		gadget: 'Gadgets/CollapsibleLeftNav',
+		Changes: '{Show:"True"}'
+	}
+})
+
 scenario({
 	name: 'Product Planning / Backlog',
 	parameters: {
