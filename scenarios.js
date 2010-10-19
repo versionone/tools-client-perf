@@ -330,6 +330,15 @@ scenario({
 	}
 })
 
+setup({
+	name: "Turn Left-Nav on",
+	url: 'ui.v1',
+	parameters: {
+		gadget: 'Gadgets/CollapsibleLeftNav',
+		Changes: '{Show:"True"}'
+	}
+})
+
 scenario({
 	name: 'Expand Project Tree',
 	parameters: {
