@@ -354,31 +354,23 @@ scenario({
 
 scenario({
 	name: 'Release Planning / Release Burndown Popup',
+	url: 'entity.v1',
 	parameters: {
-		menu: 'ReleaseSchedulingPage',
-		PrimaryScopeContext: projectWithSchedule
-	},
-	verifyScope: projectWithSchedule,
-	onload: function($, V1, end) {
-		Aspect(V1.Topics, "Publish").after(function(topic) { if (topic == "Gadget/Refreshed") end() })
-		V1.Html.Event.Fire($('.ActionMenu_Reports_ReleaseScheduling img.arrow')[0], 'click')
-		$('div.action').filter(function() {return $(this).text() == 'Release Burndown'}).click()
-		$('.FilterGoButton .submit').click()
+		Entity: 'ReleaseBurndownGraphContainer',
+		ShowContents: true,
+		ContextManager: JSON.stringify({PrimaryScopeContext: projectWithSchedule}),
+		aspage: true
 	}
 })
 
 scenario({
 	name: 'Release Planning / Release Estimate Trend Popup',
+	url: 'entity.v1',
 	parameters: {
-		menu: 'ReleaseSchedulingPage',
-		PrimaryScopeContext: projectWithSchedule
-	},
-	verifyScope: projectWithSchedule,
-	onload: function($, V1, end) {
-		Aspect(V1.Topics, "Publish").after(function(topic) { if (topic == "Gadget/Refreshed") end() })
-		V1.Html.Event.Fire($('.ActionMenu_Reports_ReleaseScheduling img.arrow')[0], 'click')
-		$('div.action').filter(function() {return $(this).text() == 'Release Estimate Trend'}).click()
-		$('.FilterGoButton .submit').click()
+		Entity: 'ReleaseTrendGraphContainer',
+		ShowContents: true,
+		ContextManager: JSON.stringify({PrimaryScopeContext: projectWithSchedule}),
+		aspage: true
 	}
 })
 
