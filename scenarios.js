@@ -21,7 +21,7 @@ setup({
 	}
 })
 
-$.each([25, 50, 100, 200], function(i, pageSize) {
+$.each(pageSizes, function(i, pageSize) {
 
 	setup({
 		name: "Set Page Size = " + pageSize,
